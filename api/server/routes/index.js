@@ -25,6 +25,12 @@ const keys = require('./keys');
 const user = require('./user');
 const mcp = require('./mcp');
 
+const express = require('express'); // Pastikan ini ada
+const router = express.Router();    // Pastikan ini ada
+
+// ... daftar require Anda yang banyak itu ...
+const skills = require('./skills');
+router.use('/skills', skills);
 module.exports = {
   mcp,
   auth,
@@ -52,4 +58,6 @@ module.exports = {
   categories,
   staticRoute,
   accessPermissions,
+  skills,
+  router
 };

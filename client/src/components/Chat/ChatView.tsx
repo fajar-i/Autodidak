@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { useRecoilValue } from 'recoil';
 import { useForm } from 'react-hook-form';
 import { Spinner } from '@librechat/client';
@@ -25,6 +25,8 @@ import Footer from './Footer';
 import { cn } from '~/utils';
 import store from '~/store';
 
+import SkillTree from '../SkillTree/SkillTree'; // Sesuaikan path folder Anda
+
 function LoadingSpinner() {
   return (
     <div className="relative flex-1 overflow-hidden overflow-y-auto">
@@ -41,7 +43,7 @@ function ChatView({ index = 0 }: { index?: number }) {
   const centerFormOnLanding = useRecoilValue(store.centerFormOnLanding);
 
   const fileMap = useFileMapContext();
-
+  const [showMap, setShowMap] = useState(true);
   const { data: messagesTree = null, isLoading } = useGetMessagesByConvoId(conversationId ?? '', {
     select: useCallback(
       (data: TMessage[]) => {
@@ -92,30 +94,50 @@ function ChatView({ index = 0 }: { index?: number }) {
       <ChatContext.Provider value={chatHelpers}>
         <AddedChatContext.Provider value={addedChatHelpers}>
           <Presentation>
-            <div className="flex h-full w-full flex-col">
+            <div className="flex h-full w-full flex-col overflow-hidden">
               {!isLoading && <Header />}
-              <>
-                <div
-                  className={cn(
-                    'flex flex-col',
-                    isLandingPage
-                      ? 'flex-1 items-center justify-end sm:justify-center'
-                      : 'h-full overflow-y-auto',
-                  )}
-                >
-                  {content}
-                  <div
-                    className={cn(
+
+              {/* WRAPPER UTAMA UNTUK SPLIT SCREEN */}
+              <div className="flex h-full w-full overflow-hidden flex-row">
+
+                {/* AREA CHAT (Kiri) */}
+                <div className={cn(
+                  "flex h-full flex-col transition-all duration-500 relative",
+                  showMap ? "w-1/2 border-r-4 border-black" : "w-full"
+                )}>
+
+                  {/* TOMBOL TOGGLE FLOATING (Neobrutalism Style) */}
+                  <button
+                    onClick={() => { setShowMap(!showMap); console.log("showmap : " + showMap) }}
+                    className="absolute top-4 right-4 z-[60] p-2 bg-yellow-400 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none active:translate-x-0.5 active:translate-y-0.5 transition-all font-bold text-xs"
+                  >
+                    {showMap ? 'HIDE MAP' : 'SHOW MAP'}
+                  </button>
+
+                  <div className={cn(
+                    'flex flex-col flex-1',
+                    isLandingPage ? 'items-center justify-end sm:justify-center' : 'overflow-y-auto'
+                  )}>
+                    {content}
+                    <div className={cn(
                       'w-full',
                       isLandingPage && 'max-w-3xl transition-all duration-200 xl:max-w-4xl',
-                    )}
-                  >
-                    <ChatForm index={index} />
-                    {isLandingPage ? <ConversationStarters /> : <Footer />}
+                    )}>
+                      <ChatForm index={index} />
+                      {isLandingPage ? <ConversationStarters /> : <Footer />}
+                    </div>
                   </div>
+                  {isLandingPage && <Footer />}
                 </div>
-                {isLandingPage && <Footer />}
-              </>
+
+                {/* AREA SKILL TREE / CANVAS (Kanan) */}
+                {showMap && (
+                  <div className="w-1/2 h-full bg-white relative overflow-hidden animate-in slide-in-from-right duration-500">
+                    <SkillTree conversationId={conversationId} />
+                  </div>
+                )}
+
+              </div>
             </div>
           </Presentation>
         </AddedChatContext.Provider>

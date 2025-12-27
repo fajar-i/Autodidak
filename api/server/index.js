@@ -77,7 +77,26 @@ const startServer = async () => {
       indexHTML = indexHTML.replace(/base href="\/"/, `base href="${baseHref}"`);
     }
   }
-
+  app.use(cors({
+    // Allow both localhost and 127.0.0.1 variants
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:3090',
+        'http://127.0.0.1:3090',
+        'http://localhost:3090/',
+        'http://127.0.0.1:3090/',
+      ];
+      
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+  }));
   app.get('/health', (_req, res) => res.status(200).send('OK'));
 
   /* Middleware */
@@ -100,7 +119,9 @@ const startServer = async () => {
   });
 
   app.use(mongoSanitize());
-  app.use(cors());
+  // api/server/index.js
+  // api/server/index.js
+
   app.use(cookieParser());
 
   if (!isEnabled(DISABLE_COMPRESSION)) {
@@ -159,6 +180,7 @@ const startServer = async () => {
 
   app.use('/api/tags', routes.tags);
   app.use('/api/mcp', routes.mcp);
+  app.use('/api/skills', routes.skills);
 
   app.use(ErrorController);
 
